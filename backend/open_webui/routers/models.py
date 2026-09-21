@@ -27,7 +27,7 @@ from open_webui.env import (
 )
 from open_webui.events import EVENTS, publish_event
 from open_webui.internal.db import get_async_session
-from open_webui.models.access_grants import AccessGrants, normalize_access_grants
+from open_webui.models.access_grants import AccessGrants
 from open_webui.models.config import Config
 from open_webui.models.files import Files
 from open_webui.models.groups import Groups
@@ -555,6 +555,8 @@ async def import_models(
                                 user.role,
                                 updated_model.access_grants,
                                 'sharing.public_models',
+                                existing_access_grants=existing_model.access_grants,
+                                db=db,
                             )
                         imported_model = updated_model
                     else:
@@ -987,26 +989,14 @@ async def update_model_by_id(
 
     if form_data.access_grants is not None:
         # The editor resends every stored grant, so re-checking them would strip sharing this user cannot re-create.
-        existing_access_grants = {
-            (grant.principal_type, grant.principal_id, grant.permission) for grant in model.access_grants
-        }
-        submitted_access_grants_map = {
-            (grant['principal_type'], grant['principal_id'], grant['permission']): grant
-            for grant in normalize_access_grants(form_data.access_grants)
-        }
-        preserved_access_grants = [
-            grant for key, grant in submitted_access_grants_map.items() if key in existing_access_grants
-        ]
-        new_access_grants = [
-            grant for key, grant in submitted_access_grants_map.items() if key not in existing_access_grants
-        ]
-
-        form_data.access_grants = preserved_access_grants + await filter_allowed_access_grants(
+        form_data.access_grants = await filter_allowed_access_grants(
             await Config.get('user.permissions'),
             user.id,
             user.role,
-            new_access_grants,
+            form_data.access_grants,
             'sharing.public_models',
+            existing_access_grants=model.access_grants,
+            db=db,
         )
 
     model = await Models.update_model_by_id(form_data.id, ModelForm(**form_data.model_dump()), db=db)
@@ -1087,6 +1077,8 @@ async def update_model_access_by_id(
         user.role,
         form_data.access_grants,
         'sharing.public_models',
+        existing_access_grants=model.access_grants,
+        db=db,
     )
 
     await AccessGrants.set_access_grants('model', form_data.id, form_data.access_grants, db=db)

@@ -542,6 +542,8 @@ async def update_tools_by_id(
             user.role,
             form_data.access_grants,
             'sharing.public_tools',
+            existing_access_grants=tools.access_grants,
+            db=db,
         )
 
         updated = {
@@ -622,6 +624,8 @@ async def update_tool_access_by_id(
         user.role,
         form_data.access_grants,
         'sharing.public_tools',
+        existing_access_grants=tools.access_grants,
+        db=db,
     )
 
     await AccessGrants.set_access_grants('tool', id, form_data.access_grants, db=db)

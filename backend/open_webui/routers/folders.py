@@ -529,12 +529,14 @@ async def update_folder_access_by_id(
                 detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
             )
 
+    existing_grants = await AccessGrants.get_grants_by_resource('folder', id, db=db)
     form_data.access_grants = await filter_allowed_access_grants(
         await Config.get('user.permissions'),
         user.id,
         user.role,
         form_data.access_grants,
         None,
+        existing_access_grants=existing_grants,
         db=db,
     )
 

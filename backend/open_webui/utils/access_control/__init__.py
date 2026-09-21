@@ -7,6 +7,7 @@ from open_webui.models.access_grants import (
     has_public_read_access_grant,
     has_public_write_access_grant,
     has_user_access_grant,
+    normalize_access_grants,
     strip_anyone_access_grants,
     strip_user_access_grants,
 )
@@ -220,18 +221,101 @@ def migrate_access_control(data: dict, ac_key: str = 'access_control', grants_ke
     data.pop(ac_key, None)
 
 
+def _grant_key(grant: Any) -> tuple[str | None, str | None, str | None]:
+    """Identity of a grant, tolerating both dict and model shapes."""
+
+    def field(name: str):
+        return grant.get(name) if isinstance(grant, dict) else getattr(grant, name, None)
+
+    return (field('principal_type'), field('principal_id'), field('permission'))
+
+
+def partition_new_access_grants(access_grants: list, existing_access_grants: list | None) -> tuple[list, list]:
+    """
+    Split a submitted grant list into (already stored, newly added).
+
+    Both halves are normalized, so callers can concatenate them safely.
+    """
+    stored_keys = {_grant_key(grant) for grant in normalize_access_grants(existing_access_grants)}
+
+    kept, added = [], []
+    for grant in normalize_access_grants(access_grants):
+        (kept if _grant_key(grant) in stored_keys else added).append(grant)
+    return kept, added
+
+
+async def _strip_disallowed_access_grants(
+    default_permissions: dict[str, Any],
+    user_id: str,
+    access_grants: list,
+    public_permission_key: str | None,
+    db: AsyncSession | None = None,
+) -> list:
+    """Drop the grants a non-admin user has no permission to assign."""
+
+    # Check if user can share publicly. A resource type with no public permission
+    # key (folders) has no public sharing at all, so the grant is never allowed.
+    if (has_public_read_access_grant(access_grants) or has_public_write_access_grant(access_grants)) and (
+        not public_permission_key
+        or not await has_permission(
+            user_id,
+            public_permission_key,
+            default_permissions,
+            db=db,
+        )
+    ):
+        access_grants = [grant for grant in access_grants if _grant_key(grant)[:2] != ('user', '*')]
+
+    # Strip individual user sharing if user lacks permission
+    if has_user_access_grant(access_grants) and not await has_permission(
+        user_id,
+        'access_grants.allow_users',
+        default_permissions,
+        db=db,
+    ):
+        access_grants = strip_user_access_grants(access_grants)
+
+    if any(_grant_key(grant)[0] == 'group' for grant in access_grants) and not await has_permission(
+        user_id,
+        'access_grants.allow_groups',
+        default_permissions,
+        db=db,
+    ):
+        access_grants = [grant for grant in access_grants if _grant_key(grant)[0] != 'group']
+
+    return access_grants
+
+
 async def filter_allowed_access_grants(
     default_permissions: dict[str, Any],
     user_id: str,
     user_role: str,
     access_grants: list,
-    public_permission_key: str,
+    public_permission_key: str | None,
     anyone_permission_key: str | None = None,
+    existing_access_grants: list | None = None,
     db: AsyncSession | None = None,
 ) -> list:
     """
     Checks if the user has the required permissions to grant access to a resource.
     Returns the filtered list of access grants if permissions are missing.
+
+    ``existing_access_grants`` holds the grants currently stored for the resource.
+    Editors resend the resource's whole grant list on every save, so re-checking
+    grants that are already stored would silently *delete* sharing the caller is
+    not allowed to create but is allowed to keep -- e.g. a user with write access
+    renaming a publicly shared knowledge base would drop its public grant, and an
+    editor without ``access_grants.allow_groups`` would drop every group grant,
+    leaving the resource owner-only.  Only the grants a submission actually adds
+    are permission-checked; grants that already exist are preserved.
+
+    Removing access still works: a grant the caller leaves out of ``access_grants``
+    is simply absent from the result.
+
+    ``anyone`` (no-auth) grants are the exception and are re-checked even when
+    already stored: they expose the resource to unauthenticated visitors, and
+    resource types that do not support open sharing pass no
+    ``anyone_permission_key`` at all.
     """
     if not access_grants:
         return access_grants
@@ -253,52 +337,25 @@ async def filter_allowed_access_grants(
     if user_role == 'admin':
         return access_grants
 
-    # Check if user can share publicly
-    if (
-        has_public_read_access_grant(access_grants) or has_public_write_access_grant(access_grants)
-    ) and not await has_permission(
+    kept, submitted = partition_new_access_grants(access_grants, existing_access_grants)
+    allowed = await _strip_disallowed_access_grants(
+        default_permissions,
         user_id,
+        submitted,
         public_permission_key,
-        default_permissions,
         db=db,
-    ):
-        access_grants = [
-            grant
-            for grant in access_grants
-            if not (
-                (grant.get('principal_type') if isinstance(grant, dict) else getattr(grant, 'principal_type', None))
-                == 'user'
-                and (grant.get('principal_id') if isinstance(grant, dict) else getattr(grant, 'principal_id', None))
-                == '*'
-            )
-        ]
+    )
 
-    # Strip individual user sharing if user lacks permission
-    if has_user_access_grant(access_grants) and not await has_permission(
-        user_id,
-        'access_grants.allow_users',
-        default_permissions,
-        db=db,
-    ):
-        access_grants = strip_user_access_grants(access_grants)
+    if len(allowed) != len(submitted):
+        log.info(
+            'Access grants filtered: user_id=%r resource_grants_kept=%d requested=%d allowed=%d',
+            user_id,
+            len(kept),
+            len(submitted),
+            len(allowed),
+        )
 
-    if any(
-        (grant.get('principal_type') if isinstance(grant, dict) else getattr(grant, 'principal_type', None)) == 'group'
-        for grant in access_grants
-    ) and not await has_permission(
-        user_id,
-        'access_grants.allow_groups',
-        default_permissions,
-        db=db,
-    ):
-        access_grants = [
-            grant
-            for grant in access_grants
-            if (grant.get('principal_type') if isinstance(grant, dict) else getattr(grant, 'principal_type', None))
-            != 'group'
-        ]
-
-    return access_grants
+    return kept + allowed if kept else allowed
 
 
 async def has_base_model_access(

@@ -729,6 +729,8 @@ async def update_channel_by_id(
         user.role,
         form_data.access_grants,
         'sharing.public_channels',
+        existing_access_grants=channel.access_grants,
+        db=db,
     )
 
     try:

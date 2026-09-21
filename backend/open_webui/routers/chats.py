@@ -2044,6 +2044,7 @@ async def update_shared_chat_access_by_id(
             detail=ERROR_MESSAGES.NOT_FOUND,
         )
 
+    existing_grants = await AccessGrants.get_grants_by_resource('shared_chat', id, db=db)
     form_data.access_grants = await filter_allowed_access_grants(
         await Config.get('user.permissions'),
         user.id,
@@ -2051,6 +2052,7 @@ async def update_shared_chat_access_by_id(
         form_data.access_grants,
         'sharing.public_chats',
         'sharing.open_chats',
+        existing_access_grants=existing_grants,
         db=db,
     )
 

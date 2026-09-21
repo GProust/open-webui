@@ -313,6 +313,8 @@ async def update_skill_by_id(
         user.role,
         form_data.access_grants,
         'sharing.public_skills',
+        existing_access_grants=skill.access_grants,
+        db=db,
     )
 
     try:
@@ -391,6 +393,8 @@ async def update_skill_access_by_id(
         user.role,
         form_data.access_grants,
         'sharing.public_skills',
+        existing_access_grants=skill.access_grants,
+        db=db,
     )
 
     await AccessGrants.set_access_grants('skill', id, form_data.access_grants, db=db)
