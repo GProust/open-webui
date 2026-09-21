@@ -34,7 +34,8 @@ export const DEFAULT_PERMISSIONS = {
 	},
 	access_grants: {
 		allow_users: true,
-		allow_groups: true
+		allow_groups: true,
+		allow_all_groups: true
 	},
 	chat: {
 		controls: true,

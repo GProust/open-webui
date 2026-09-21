@@ -228,6 +228,8 @@ class SharingPermissions(BaseModel):
 class AccessGrantsPermissions(BaseModel):
     allow_users: bool = True
     allow_groups: bool = True
+    # False restricts group grants to the groups the user is a member of.
+    allow_all_groups: bool = True
 
 
 class ChatPermissions(BaseModel):

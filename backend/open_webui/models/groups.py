@@ -217,11 +217,18 @@ class GroupTable:
 
                         if member_id:
                             member_groups_select = select(GroupMember.group_id).where(GroupMember.user_id == member_id)
-                            members_only_and_is_member = and_(
-                                json_share_lower == 'members',
-                                Group.id.in_(member_groups_select),
-                            )
-                            stmt = stmt.filter(or_(anyone_can_share, members_only_and_is_member))
+                            if filter.get('member_only'):
+                                # Caller may only share with the groups they belong to.
+                                stmt = stmt.filter(
+                                    Group.id.in_(member_groups_select),
+                                    or_(anyone_can_share, json_share_lower == 'members'),
+                                )
+                            else:
+                                members_only_and_is_member = and_(
+                                    json_share_lower == 'members',
+                                    Group.id.in_(member_groups_select),
+                                )
+                                stmt = stmt.filter(or_(anyone_can_share, members_only_and_is_member))
                         else:
                             stmt = stmt.filter(anyone_can_share)
                     else:

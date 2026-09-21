@@ -571,7 +571,28 @@
 					ariaLabel={$i18n.t('Allow Sharing With Groups')}
 				/>
 			</div>
-			{#if defaultPermissions?.access_grants?.allow_groups && !permissions.access_grants.allow_groups}
+			{#if permissions.access_grants.allow_groups}
+				<div class="ml-2 flex flex-col gap-2 pt-0.5 pb-1">
+					<div class="flex w-full justify-between">
+						<div class="self-center text-xs">
+							{$i18n.t('Allow Sharing With Any Group')}
+						</div>
+						<Switch
+							bind:state={permissions.access_grants.allow_all_groups}
+							ariaLabel={$i18n.t('Allow Sharing With Any Group')}
+						/>
+					</div>
+					{#if defaultPermissions?.access_grants?.allow_all_groups && !permissions.access_grants.allow_all_groups}
+						<div class="text-xs text-gray-500">
+							{$i18n.t('This is a default user permission and will remain enabled.')}
+						</div>
+					{:else if !permissions.access_grants.allow_all_groups}
+						<div class="text-xs text-gray-500">
+							{$i18n.t('Members can only share with the groups they belong to.')}
+						</div>
+					{/if}
+				</div>
+			{:else if defaultPermissions?.access_grants?.allow_groups}
 				<div>
 					<div class="text-xs text-gray-500">
 						{$i18n.t('This is a default user permission and will remain enabled.')}

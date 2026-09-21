@@ -9,6 +9,7 @@ from open_webui.constants import ERROR_MESSAGES
 from open_webui.events import EVENTS, publish_event
 from open_webui.internal.db import get_async_session
 from open_webui.models.access_grants import AccessGrants
+from open_webui.models.config import Config
 from open_webui.models.groups import (
     GroupForm,
     GroupInfoResponse,
@@ -21,6 +22,7 @@ from open_webui.models.knowledge import Knowledges
 from open_webui.models.models import Models
 from open_webui.models.tools import Tools
 from open_webui.models.users import UserInfoResponse, Users
+from open_webui.utils.access_control import has_permission
 from open_webui.utils.auth import get_admin_user, get_verified_user
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -46,6 +48,14 @@ async def get_groups(
         filter['member_id'] = user.id
         if share is not None:
             filter['share'] = share
+            if share and not await has_permission(
+                user.id,
+                'access_grants.allow_all_groups',
+                await Config.get('user.permissions'),
+                db=db,
+            ):
+                # Only offer the groups this user belongs to as sharing targets.
+                filter['member_only'] = True
 
     groups = await Groups.get_groups(filter=filter, db=db)
 

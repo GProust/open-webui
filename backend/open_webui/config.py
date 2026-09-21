@@ -1844,6 +1844,11 @@ USER_PERMISSIONS_ACCESS_GRANTS_ALLOW_USERS = (
 USER_PERMISSIONS_ACCESS_GRANTS_ALLOW_GROUPS = (
     os.getenv('USER_PERMISSIONS_ACCESS_GRANTS_ALLOW_GROUPS', 'True').lower() == 'true'
 )
+# When False, a user may only grant access to the groups they are a member of.
+# Defaults to True so existing deployments keep sharing with any group.
+USER_PERMISSIONS_ACCESS_GRANTS_ALLOW_ALL_GROUPS = (
+    os.getenv('USER_PERMISSIONS_ACCESS_GRANTS_ALLOW_ALL_GROUPS', 'True').lower() == 'true'
+)
 
 
 USER_PERMISSIONS_CHAT_CONTROLS = os.getenv('USER_PERMISSIONS_CHAT_CONTROLS', 'True').lower() == 'true'
@@ -1974,6 +1979,7 @@ DEFAULT_USER_PERMISSIONS = {
     'access_grants': {
         'allow_users': USER_PERMISSIONS_ACCESS_GRANTS_ALLOW_USERS,
         'allow_groups': USER_PERMISSIONS_ACCESS_GRANTS_ALLOW_GROUPS,
+        'allow_all_groups': USER_PERMISSIONS_ACCESS_GRANTS_ALLOW_ALL_GROUPS,
     },
     'chat': {
         'controls': USER_PERMISSIONS_CHAT_CONTROLS,

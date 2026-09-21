@@ -298,6 +298,26 @@ async def filter_allowed_access_grants(
             != 'group'
         ]
 
+    # Restrict group grants to the user's own groups when they may not share with every group.
+    if any(
+        (grant.get('principal_type') if isinstance(grant, dict) else getattr(grant, 'principal_type', None)) == 'group'
+        for grant in access_grants
+    ) and not await has_permission(
+        user_id,
+        'access_grants.allow_all_groups',
+        default_permissions,
+        db=db,
+    ):
+        member_group_ids = {group.id for group in await Groups.get_groups_by_member_id(user_id, db=db)}
+        access_grants = [
+            grant
+            for grant in access_grants
+            if (grant.get('principal_type') if isinstance(grant, dict) else getattr(grant, 'principal_type', None))
+            != 'group'
+            or (grant.get('principal_id') if isinstance(grant, dict) else getattr(grant, 'principal_id', None))
+            in member_group_ids
+        ]
+
     return access_grants
 
 
