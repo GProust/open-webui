@@ -3104,6 +3104,7 @@
 	"Skip to main content": "Léim go dtí an príomhábhar",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "Chuaigh rud éigin mícheart :/",
 	"Sonar": "Sónar",
 	"Sonar Deep Research": "Taighde Doimhne Sonair",

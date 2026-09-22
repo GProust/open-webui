@@ -22,6 +22,7 @@
 	dayjs.extend(relativeTime);
 
 	import { compressImage, copyToClipboard, convertHeicToJpeg } from '$lib/utils';
+	import { reconcileAccessGrants } from '$lib/utils/access';
 	import { WEBUI_BASE_URL } from '$lib/constants';
 	import { getFileById, uploadFile } from '$lib/apis/files';
 	import { generateOpenAIChatCompletion } from '$lib/apis/openai';
@@ -1001,8 +1002,22 @@ ${content}
 		onChange={async () => {
 			if (id) {
 				try {
-					await updateNoteAccessGrants(localStorage.token, id, note.access_grants ?? []);
-					toast.success($i18n.t('Saved'));
+					const submitted = note.access_grants ?? [];
+					const { grants, rejected } = reconcileAccessGrants(
+						submitted,
+						await updateNoteAccessGrants(localStorage.token, id, submitted)
+					);
+					note.access_grants = grants;
+
+					if (rejected.length) {
+						toast.warning(
+							$i18n.t(
+								'Some access changes were not saved. You do not have permission to share this way.'
+							)
+						);
+					} else {
+						toast.success($i18n.t('Saved'));
+					}
 				} catch (error) {
 					toast.error(`${error}`);
 				}

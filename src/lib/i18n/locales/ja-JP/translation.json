@@ -3088,6 +3088,7 @@
 	"Skip to main content": "メインコンテンツへ移動",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "Slimでは、埋め込み、ベクトルストレージ、ドキュメント抽出に外部サービスが必要です。基本的なテキストファイルはローカルで読み込めます。",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "Slimには外部の音声プロバイダーが必要です。ローカルの音声モデルと音声変換は利用できません。",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "何らかの問題が発生しました",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",

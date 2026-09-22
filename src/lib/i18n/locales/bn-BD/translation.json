@@ -3104,6 +3104,7 @@
 	"Skip to main content": "মূল বিষয়বস্তুতে যান",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "এমবেডিং, ভেক্টর সংরক্ষণ ও ডকুমেন্ট থেকে তথ্য আহরণের জন্য Slim-এর বাইরের পরিষেবা দরকার। সাধারণ টেক্সট ফাইল স্থানীয়ভাবে পড়া যায়।",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "Slim-এর বাইরের কণ্ঠস্বর পরিষেবা প্রদানকারী দরকার। স্থানীয় কণ্ঠস্বর মডেল ও অডিও রূপান্তর উপলব্ধ নয়।",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "কিছু একটা ভুল হয়েছে :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",

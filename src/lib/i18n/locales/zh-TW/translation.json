@@ -3088,6 +3088,7 @@
 	"Skip to main content": "跳至主要內容",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "精簡版（Slim）需要外部服務以進行嵌入、向量儲存與文件擷取。基本純文字檔案可在本機讀取。",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "精簡版（Slim）需要外部語音提供者。本機語音模型與音訊轉換無法使用。",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "發生錯誤 :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",

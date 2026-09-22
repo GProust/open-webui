@@ -50,6 +50,7 @@
 
 	import { blobToFile, copyToClipboard } from '$lib/utils';
 	import { computeFileHash } from '$lib/utils/hash';
+	import { reconcileAccessGrants } from '$lib/utils/access';
 
 	import Spinner from '$lib/components/common/Spinner.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
@@ -1228,8 +1229,22 @@
 				$user?.role === 'admin'}
 			onChange={async () => {
 				try {
-					await updateKnowledgeAccessGrants(localStorage.token, id, knowledge.access_grants ?? []);
-					toast.success($i18n.t('Saved'));
+					const submitted = knowledge.access_grants ?? [];
+					const { grants, rejected } = reconcileAccessGrants(
+						submitted,
+						await updateKnowledgeAccessGrants(localStorage.token, id, submitted)
+					);
+					knowledge.access_grants = grants;
+
+					if (rejected.length) {
+						toast.warning(
+							$i18n.t(
+								'Some access changes were not saved. You do not have permission to share this way.'
+							)
+						);
+					} else {
+						toast.success($i18n.t('Saved'));
+					}
 				} catch (error) {
 					toast.error(`${error}`);
 				}

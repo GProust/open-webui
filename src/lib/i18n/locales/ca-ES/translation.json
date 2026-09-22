@@ -3120,6 +3120,7 @@
 	"Skip to main content": "Vés al contingut principal",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "Slim requereix serveis externs per a les incrustacions, l'emmagatzematge vectorial i l'extracció de documents. Els arxius de text bàsics es poden llegir localment.",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "Slim requereix proveïdors externs de serveis de veu. Els models de veu locals i la conversió d'àudio no estan disponibles.",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "Quelcom no ha anat bé",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",

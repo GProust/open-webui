@@ -6,7 +6,9 @@
 	import AccessControl from '$lib/components/workspace/common/AccessControl.svelte';
 	import XMark from '../icons/XMark.svelte';
 	import { getFolderById, updateFolderAccessById } from '$lib/apis/folders';
+	import { reconcileAccessGrants } from '$lib/utils/access';
 	import { user } from '$lib/stores';
+	import { toast } from 'svelte-sonner';
 
 	type AccessGrant = {
 		id?: string;
@@ -44,12 +46,23 @@
 	const handleAccessChange = async () => {
 		if (!folder) return;
 		try {
-			const res = await updateFolderAccessById(localStorage.token, folder.id, accessGrants);
-			if (res) {
-				accessGrants = res.access_grants ?? accessGrants;
+			const submitted = accessGrants;
+			const { grants, rejected } = reconcileAccessGrants(
+				submitted,
+				await updateFolderAccessById(localStorage.token, folder.id, submitted)
+			);
+			accessGrants = grants;
+
+			if (rejected.length) {
+				toast.warning(
+					$i18n.t(
+						'Some access changes were not saved. You do not have permission to share this way.'
+					)
+				);
 			}
 		} catch (e) {
 			console.error('Failed to update folder access', e);
+			toast.error(`${e}`);
 		}
 	};
 </script>

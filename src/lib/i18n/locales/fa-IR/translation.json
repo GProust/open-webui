@@ -3104,6 +3104,7 @@
 	"Skip to main content": "",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "مشکلی پیش آمد :/",
 	"Sonar": "سونار",
 	"Sonar Deep Research": "تحقیق عمیق سونار",

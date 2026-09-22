@@ -13,6 +13,7 @@
 	let meta: { i18n?: Record<string, Record<string, string>>; [key: string]: any } = {};
 	import { user } from '$lib/stores';
 	import { slugify, parseFrontmatter, formatSkillName } from '$lib/utils';
+	import { reconcileAccessGrants } from '$lib/utils/access';
 	import Spinner from '$lib/components/common/Spinner.svelte';
 	import { updateSkillAccessGrants } from '$lib/apis/skills';
 	import { goto } from '$app/navigation';
@@ -101,8 +102,22 @@
 	onChange={async () => {
 		if (edit && skill?.id) {
 			try {
-				await updateSkillAccessGrants(localStorage.token, skill.id, accessGrants);
-				toast.success($i18n.t('Saved'));
+				const submitted = accessGrants;
+				const { grants, rejected } = reconcileAccessGrants(
+					submitted,
+					await updateSkillAccessGrants(localStorage.token, skill.id, submitted)
+				);
+				accessGrants = grants;
+
+				if (rejected.length) {
+					toast.warning(
+						$i18n.t(
+							'Some access changes were not saved. You do not have permission to share this way.'
+						)
+					);
+				} else {
+					toast.success($i18n.t('Saved'));
+				}
 			} catch (error) {
 				toast.error(`${error}`);
 			}

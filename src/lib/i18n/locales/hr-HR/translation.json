@@ -3120,6 +3120,7 @@
 	"Skip to main content": "Preskoči na glavni sadržaj",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "Slim zahtijeva vanjske usluge za embeddinge, pohranu vektora i izdvajanje dokumenata. Osnovne tekstualne datoteke mogu se čitati lokalno.",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "Slim zahtijeva vanjske pružatelje govornih usluga. Lokalni govorni modeli i pretvorba zvuka nisu dostupni.",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "Nešto je pošlo po zlu :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",

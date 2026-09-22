@@ -3168,6 +3168,7 @@
 	"Skip to main content": "الانتقال إلى المحتوى الرئيسي",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "يتطلب إصدار Slim خدمات خارجية للتضمين وتخزين المتجهات واستخراج المستندات. يمكن قراءة الملفات النصية الأساسية محليًا.",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "يتطلب إصدار Slim موفّري كلام خارجيين. نماذج الكلام المحلية وتحويل الصوت غير متاحين.",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "حدث خطأ ما :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",

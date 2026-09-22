@@ -20,6 +20,7 @@
 	import LocalizedField from '$lib/components/common/LocalizedField.svelte';
 	import PluginTranslations from '$lib/components/workspace/common/PluginTranslations.svelte';
 	import { pruneEmptyLocaleEntries } from '$lib/utils/localizedContent';
+	import { reconcileAccessGrants } from '$lib/utils/access';
 	let locale = '';
 
 	let formElement = null;
@@ -215,8 +216,22 @@ class Tools:
 	onChange={async () => {
 		if (edit && id) {
 			try {
-				await updateToolAccessGrants(localStorage.token, id, accessGrants);
-				toast.success($i18n.t('Saved'));
+				const submitted = accessGrants;
+				const { grants, rejected } = reconcileAccessGrants(
+					submitted,
+					await updateToolAccessGrants(localStorage.token, id, submitted)
+				);
+				accessGrants = grants;
+
+				if (rejected.length) {
+					toast.warning(
+						$i18n.t(
+							'Some access changes were not saved. You do not have permission to share this way.'
+						)
+					);
+				} else {
+					toast.success($i18n.t('Saved'));
+				}
 			} catch (error) {
 				toast.error(`${error}`);
 			}

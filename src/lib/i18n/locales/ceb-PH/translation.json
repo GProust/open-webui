@@ -3104,6 +3104,7 @@
 	"Skip to main content": "Laktaw ngadto sa pangunang sulod",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "Ang Slim nanginahanglan og mga serbisyo sa gawas alang sa mga embedding, tipiganan sa vector, ug pagkuha sa dokumento. Ang yano nga mga text file mabasa sa lokal.",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "Ang Slim nanginahanglan og mga tighatag sa tingog sa gawas. Dili magamit ang lokal nga mga modelo sa sinultihan ug pagkabig sa audio.",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "Adunay nasayop :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",

@@ -3104,6 +3104,7 @@
 	"Skip to main content": "Əsas məzmuna keç",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "Slim yerləşdirmələr, vektorların saxlanılması və sənədlərdən məzmun çıxarılması üçün xarici xidmətlər tələb edir. Sadə mətn faylları yerli olaraq oxuna bilər.",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "Slim xarici nitq xidmətləri tələb edir. Yerli nitq modelləri və səs çevirmə mövcud deyil.",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "Xəta baş verdi :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Dərin Araşdırma",

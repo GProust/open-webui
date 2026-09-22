@@ -3120,6 +3120,7 @@
 	"Skip to main content": "Ir al contenido principal",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "La versión Slim requiere servicios externos para generar incrustaciones, almacenar vectores y extraer el contenido de los documentos. Los archivos de texto sin formato se pueden leer localmente.",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "La versión Slim requiere servicios externos para el procesamiento de voz. Los modelos de voz locales y la conversión de audio no están disponibles.",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "Algo ha ido mal :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Investigación Profunda",

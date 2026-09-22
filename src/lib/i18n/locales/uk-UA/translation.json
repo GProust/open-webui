@@ -3136,6 +3136,7 @@
 	"Skip to main content": "Перейти до основного вмісту",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "У збірці Slim для створення векторних представлень, зберігання векторів і вилучення вмісту документів необхідні зовнішні сервіси. Читання звичайних текстових файлів доступне локально.",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "У збірці Slim для обробки мовлення необхідні зовнішні сервіси. Локальні мовленнєві моделі та перетворення аудіо недоступні.",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "Щось пішло не так :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",

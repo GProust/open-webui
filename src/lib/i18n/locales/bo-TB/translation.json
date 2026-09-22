@@ -3088,6 +3088,7 @@
 	"Skip to main content": "ནང་དོན་གཙོ་བོར་མཆོང་བ།",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "Slim ལ་ཚུད་འཇུག ཕྱོགས་ཚད་ཉར་ཚགས་དང་ཡིག་ཆ་ནས་འདོན་པའི་ཆེད་ཕྱིའི་ཞབས་ཞུ་དགོས། གཞི་རྩའི་ཡིག་རྐྱང་ཡིག་ཆ་ས་གནས་སུ་ཀློག་ཐུབ།",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "Slim ལ་ཕྱིའི་སྐད་ཀྱི་ཞབས་ཞུ་མཁོ་འདོན་པ་དགོས། ས་གནས་སྐད་ཀྱི་དཔེ་དབྱིབས་དང་སྒྲ་བསྒྱུར་མི་ཐུབ།",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "གནད་དོན་ཞིག་བྱུང་སོང་ :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",

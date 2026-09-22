@@ -3136,6 +3136,7 @@
 	"Skip to main content": "Přejít na hlavní obsah",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "Varianta Slim vyžaduje externí služby pro vektorizaci, vektorové úložiště a extrakci dokumentů. Základní textové soubory lze číst místně.",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "Varianta Slim vyžaduje externí poskytovatele hlasových služeb. Místní hlasové modely a převod zvuku nejsou dostupné.",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "Něco se pokazilo :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",

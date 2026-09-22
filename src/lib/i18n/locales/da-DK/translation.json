@@ -3104,6 +3104,7 @@
 	"Skip to main content": "Gå til hovedindhold",
 	"Slim requires external services for embeddings, vector storage, and document extraction. Basic text files can be read locally.": "Slim kræver eksterne tjenester til embeddings, vektorlagring og dokumentudtræk. Enkle tekstfiler kan læses lokalt.",
 	"Slim requires external speech providers. Local speech models and audio conversion are unavailable.": "Slim kræver eksterne udbydere af taletjenester. Lokale talemodeller og lydkonvertering er ikke tilgængelige.",
+	"Some access changes were not saved. You do not have permission to share this way.": "",
 	"Something went wrong :/": "Noget gik galt :/",
 	"Sonar": "Sonar",
 	"Sonar Deep Research": "Sonar Deep Research",
