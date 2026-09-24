@@ -1,17 +1,76 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
+	import { getContext, onMount } from 'svelte';
+	import { getGroups } from '$lib/apis/groups';
 	import Textarea from '$lib/components/common/Textarea.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
+	import XMark from '$lib/components/icons/XMark.svelte';
 
 	const i18n = getContext('i18n');
 
 	export let name = '';
 	export let color = '';
 	export let description = '';
-	export let data = {};
+	export let data: Record<string, any> = {};
 
 	export let edit = false;
 	export let onDelete: Function = () => {};
+
+	type GroupOption = { id: string; name: string };
+
+	let groups: GroupOption[] = [];
+	let groupsLoaded = false;
+
+	$: shareGroupIds = (
+		Array.isArray(data?.config?.share_group_ids) ? data.config.share_group_ids : []
+	) as string[];
+	// Ids of deleted groups (or all ids, if the list failed to load) show as "Unknown" so they can be removed
+	$: selectedShareGroups = shareGroupIds.map((id) => ({
+		id,
+		name: groups.find((group) => group.id === id)?.name ?? null
+	}));
+	$: availableShareGroups = groups.filter((group) => !shareGroupIds.includes(group.id));
+
+	const shareChangeHandler = (value: string) => {
+		let shareValue;
+		if (value === 'false') {
+			shareValue = false;
+		} else if (value === 'true') {
+			shareValue = true;
+		} else {
+			shareValue = value;
+		}
+
+		// share_group_ids is kept when switching modes so the selection survives toggling; it only applies to 'groups'
+		data.config = {
+			...(data?.config ?? {}),
+			share: shareValue,
+			...(shareValue === 'groups' ? { share_group_ids: shareGroupIds } : {})
+		};
+	};
+
+	const addShareGroup = (id: string) => {
+		if (!id || shareGroupIds.includes(id)) {
+			return;
+		}
+		data.config = { ...(data?.config ?? {}), share_group_ids: [...shareGroupIds, id] };
+	};
+
+	const removeShareGroup = (id: string) => {
+		data.config = {
+			...(data?.config ?? {}),
+			share_group_ids: shareGroupIds.filter((groupId) => groupId !== id)
+		};
+	};
+
+	onMount(async () => {
+		try {
+			groups = (await getGroups(localStorage.token)) ?? [];
+		} catch (error) {
+			console.error(error);
+			groups = [];
+		}
+		groupsLoaded = true;
+	});
 </script>
 
 <div class="flex gap-2">
@@ -79,25 +138,71 @@
 				<select
 					class="text-sm bg-transparent outline-hidden rounded-lg pl-2 pr-5"
 					value={data?.config?.share ?? 'members'}
-					on:change={(e) => {
-						const value = e.target.value;
-						let shareValue;
-						if (value === 'false') {
-							shareValue = false;
-						} else if (value === 'true') {
-							shareValue = true;
-						} else {
-							shareValue = value;
-						}
-						data.config = { ...(data?.config ?? {}), share: shareValue };
-					}}
+					aria-label={$i18n.t('Who can share to this group')}
+					on:change={(e) => shareChangeHandler(e.currentTarget.value)}
 				>
 					<option value={false}>{$i18n.t('No one')}</option>
 					<option value="members">{$i18n.t('Members')}</option>
+					<option value="groups">{$i18n.t('Specific groups')}</option>
 					<option value={true}>{$i18n.t('Anyone')}</option>
 				</select>
 			</div>
 		</div>
+
+		{#if data?.config?.share === 'groups'}
+			<div class="flex flex-col gap-1.5 mt-1">
+				<div class="flex flex-wrap items-center gap-1">
+					{#if !groupsLoaded}
+						<div class="text-xs text-gray-400 dark:text-gray-500">{$i18n.t('Loading...')}</div>
+					{:else}
+						{#each selectedShareGroups as group (group.id)}
+							<div
+								class="flex items-center gap-1 text-xs pl-2 pr-1 py-0.5 rounded-lg bg-gray-100 dark:bg-gray-850 {group.name ===
+								null
+									? 'text-gray-400 dark:text-gray-500'
+									: ''}"
+								title={group.name === null ? group.id : undefined}
+							>
+								<span class="line-clamp-1">{group.name ?? $i18n.t('Unknown')}</span>
+								<button
+									class="rounded-full p-0.5 text-gray-500 hover:text-gray-900 hover:bg-gray-200 dark:hover:text-white dark:hover:bg-gray-800 transition"
+									type="button"
+									aria-label={`${$i18n.t('Remove')} ${group.name ?? $i18n.t('Unknown')}`}
+									on:click={() => removeShareGroup(group.id)}
+								>
+									<XMark className="size-3" />
+								</button>
+							</div>
+						{:else}
+							<div class="text-xs text-gray-400 dark:text-gray-500">
+								{$i18n.t('No groups selected')}
+							</div>
+						{/each}
+					{/if}
+				</div>
+
+				<select
+					class="w-full text-sm bg-transparent outline-hidden rounded-lg pr-5 text-gray-500 dark:text-gray-400"
+					value=""
+					aria-label={$i18n.t('Select a group')}
+					on:change={(e) => {
+						addShareGroup(e.currentTarget.value);
+						e.currentTarget.value = '';
+					}}
+				>
+					<option value="" disabled>{$i18n.t('Select a group')}</option>
+					{#each availableShareGroups as group (group.id)}
+						<option value={group.id}>{group.name}</option>
+					{/each}
+				</select>
+
+				<div class="text-xs text-gray-500">
+					{$i18n.t(
+						'Only members of the selected groups can share to this group. Admins can always share.'
+					)}
+				</div>
+			</div>
+		{/if}
 	</div>
 </div>
 
