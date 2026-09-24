@@ -10,7 +10,7 @@ from open_webui.models.access_grants import (
     strip_anyone_access_grants,
     strip_user_access_grants,
 )
-from open_webui.models.groups import Groups
+from open_webui.models.groups import Groups, can_share_to_group
 from open_webui.models.users import UserModel
 from open_webui.utils.json_codec import JSONCodec
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -228,10 +228,14 @@ async def filter_allowed_access_grants(
     public_permission_key: str,
     anyone_permission_key: str | None = None,
     db: AsyncSession | None = None,
+    existing_access_grants: list | None = None,
 ) -> list:
     """
     Checks if the user has the required permissions to grant access to a resource.
     Returns the filtered list of access grants if permissions are missing.
+
+    `existing_access_grants` are the grants the resource already has. Group grants among them are
+    not re-checked against the group's share setting, so editing access keeps sharing set up by others.
     """
     if not access_grants:
         return access_grants
@@ -298,7 +302,43 @@ async def filter_allowed_access_grants(
             != 'group'
         ]
 
+    # Enforce each group's "Who can share to this group" setting on the group grants being added
+    existing_group_grants = {
+        (_get_grant_field(grant, 'principal_id'), _get_grant_field(grant, 'permission'))
+        for grant in existing_access_grants or []
+        if _get_grant_field(grant, 'principal_type') == 'group'
+    }
+    new_group_ids = {
+        _get_grant_field(grant, 'principal_id')
+        for grant in access_grants
+        if _get_grant_field(grant, 'principal_type') == 'group'
+        and (_get_grant_field(grant, 'principal_id'), _get_grant_field(grant, 'permission'))
+        not in existing_group_grants
+    }
+    if new_group_ids:
+        user_group_ids = {group.id for group in await Groups.get_groups_by_member_id(user_id, db=db)}
+        groups_by_id = {group.id: group for group in await Groups.get_groups_by_ids(list(new_group_ids), db=db)}
+        denied_group_ids = {
+            group_id
+            for group_id in new_group_ids
+            if group_id not in groups_by_id or not can_share_to_group(groups_by_id[group_id], user_group_ids)
+        }
+        access_grants = [
+            grant
+            for grant in access_grants
+            if not (
+                _get_grant_field(grant, 'principal_type') == 'group'
+                and _get_grant_field(grant, 'principal_id') in denied_group_ids
+                and (_get_grant_field(grant, 'principal_id'), _get_grant_field(grant, 'permission'))
+                not in existing_group_grants
+            )
+        ]
+
     return access_grants
+
+
+def _get_grant_field(grant: Any, key: str) -> Any:
+    return grant.get(key) if isinstance(grant, dict) else getattr(grant, key, None)
 
 
 async def has_base_model_access(

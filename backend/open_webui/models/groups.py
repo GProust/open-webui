@@ -133,6 +133,32 @@ class GroupListResponse(BaseModel):
     total: int = 0
 
 
+# "Who can share to this group" value that limits sharing to members of the groups in `share_group_ids`
+GROUP_SHARE_GROUPS = 'groups'
+
+
+def can_share_to_group(group: GroupModel, user_group_ids: set[str]) -> bool:
+    """Check a group's "Who can share to this group" setting for a user who belongs to `user_group_ids`."""
+    config = (group.data or {}).get('config') or {}
+    share = config.get('share')
+
+    # Groups without a share setting are open, as in the `get_groups` share filter
+    if share is None or share is True or share == 1:
+        return True
+
+    if isinstance(share, str):
+        share = share.lower()
+        if share in ('true', '1'):
+            return True
+        if share == 'members':
+            return group.id in user_group_ids
+        if share == GROUP_SHARE_GROUPS:
+            share_group_ids = config.get('share_group_ids')
+            return isinstance(share_group_ids, list) and bool(set(share_group_ids) & user_group_ids)
+
+    return False
+
+
 class GroupTable:
     def _ensure_default_share_config(self, group_data: dict) -> dict:
         """Ensure the group data dict has a default share config if not already set."""
@@ -221,7 +247,23 @@ class GroupTable:
                                 json_share_lower == 'members',
                                 Group.id.in_(member_groups_select),
                             )
-                            stmt = stmt.filter(or_(anyone_can_share, members_only_and_is_member))
+
+                            # share_group_ids is a JSON list, so match it here rather than in SQL
+                            user_group_ids = set((await db.execute(member_groups_select)).scalars().all())
+                            groups_only_result = await db.execute(
+                                select(Group).filter(json_share_lower == GROUP_SHARE_GROUPS)
+                            )
+                            groups_only_and_is_allowed = Group.id.in_(
+                                [
+                                    group.id
+                                    for group in groups_only_result.scalars().all()
+                                    if can_share_to_group(GroupModel.model_validate(group), user_group_ids)
+                                ]
+                            )
+
+                            stmt = stmt.filter(
+                                or_(anyone_can_share, members_only_and_is_member, groups_only_and_is_allowed)
+                            )
                         else:
                             stmt = stmt.filter(anyone_can_share)
                     else:
@@ -332,6 +374,13 @@ class GroupTable:
                 user_groups[user_id].append(GroupModel.model_validate(group))
 
             return user_groups
+
+    async def get_groups_by_ids(self, ids: list[str], db: Optional[AsyncSession] = None) -> list[GroupModel]:
+        if not ids:
+            return []
+        async with get_async_db_context(db) as db:
+            result = await db.execute(select(Group).filter(Group.id.in_(ids)))
+            return [GroupModel.model_validate(group) for group in result.scalars().all()]
 
     async def get_group_by_id(self, id: str, db: Optional[AsyncSession] = None) -> Optional[GroupModel]:
         try:
