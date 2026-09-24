@@ -2052,6 +2052,7 @@ async def update_shared_chat_access_by_id(
         'sharing.public_chats',
         'sharing.open_chats',
         db=db,
+        existing_access_grants=await AccessGrants.get_grants_by_resource('shared_chat', id, db=db),
     )
 
     await AccessGrants.set_access_grants('shared_chat', id, form_data.access_grants, db=db)

@@ -303,42 +303,60 @@ async def filter_allowed_access_grants(
         ]
 
     # Enforce each group's "Who can share to this group" setting on the group grants being added
-    existing_group_grants = {
-        (_get_grant_field(grant, 'principal_id'), _get_grant_field(grant, 'permission'))
-        for grant in existing_access_grants or []
-        if _get_grant_field(grant, 'principal_type') == 'group'
-    }
+    existing_group_grants = {key for key in map(_get_group_grant_key, existing_access_grants or []) if key}
     new_group_ids = {
-        _get_grant_field(grant, 'principal_id')
-        for grant in access_grants
-        if _get_grant_field(grant, 'principal_type') == 'group'
-        and (_get_grant_field(grant, 'principal_id'), _get_grant_field(grant, 'permission'))
-        not in existing_group_grants
+        key[0] for key in map(_get_group_grant_key, access_grants) if key and key not in existing_group_grants
     }
-    if new_group_ids:
-        user_group_ids = {group.id for group in await Groups.get_groups_by_member_id(user_id, db=db)}
-        groups_by_id = {group.id: group for group in await Groups.get_groups_by_ids(list(new_group_ids), db=db)}
-        denied_group_ids = {
-            group_id
-            for group_id in new_group_ids
-            if group_id not in groups_by_id or not can_share_to_group(groups_by_id[group_id], user_group_ids)
-        }
-        access_grants = [
-            grant
-            for grant in access_grants
-            if not (
-                _get_grant_field(grant, 'principal_type') == 'group'
-                and _get_grant_field(grant, 'principal_id') in denied_group_ids
-                and (_get_grant_field(grant, 'principal_id'), _get_grant_field(grant, 'permission'))
-                not in existing_group_grants
-            )
-        ]
+    allowed_group_ids = set(await filter_shareable_group_ids(user_id, user_role, list(new_group_ids), db=db))
 
-    return access_grants
+    def is_allowed(grant: Any) -> bool:
+        if _get_grant_field(grant, 'principal_type') != 'group':
+            return True
+        key = _get_group_grant_key(grant)
+        return key is not None and (key in existing_group_grants or key[0] in allowed_group_ids)
+
+    return [grant for grant in access_grants if is_allowed(grant)]
+
+
+async def filter_shareable_group_ids(
+    user_id: str,
+    user_role: str,
+    group_ids: list[str] | None,
+    db: AsyncSession | None = None,
+) -> list[str] | None:
+    """Keep the ids of existing groups whose "Who can share to this group" setting lets the user share to them."""
+    if not group_ids or user_role == 'admin':
+        return group_ids
+
+    user_group_ids = {group.id for group in await Groups.get_groups_by_member_id(user_id, db=db)}
+    groups_by_id = {
+        group.id: group
+        for group in await Groups.get_groups_by_ids(
+            [group_id for group_id in group_ids if isinstance(group_id, str)], db=db
+        )
+    }
+    return [
+        group_id
+        for group_id in group_ids
+        if group_id in groups_by_id and can_share_to_group(groups_by_id[group_id], user_group_ids)
+    ]
 
 
 def _get_grant_field(grant: Any, key: str) -> Any:
     return grant.get(key) if isinstance(grant, dict) else getattr(grant, key, None)
+
+
+def _get_group_grant_key(grant: Any) -> tuple[str, str] | None:
+    """(principal_id, permission) of a well-formed group grant, otherwise None."""
+    principal_id = _get_grant_field(grant, 'principal_id')
+    permission = _get_grant_field(grant, 'permission')
+    if (
+        _get_grant_field(grant, 'principal_type') == 'group'
+        and isinstance(principal_id, str)
+        and isinstance(permission, str)
+    ):
+        return principal_id, permission
+    return None
 
 
 async def has_base_model_access(

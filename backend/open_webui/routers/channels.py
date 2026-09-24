@@ -42,7 +42,7 @@ from open_webui.socket.main import (
     get_user_ids_from_room,
     sio,
 )
-from open_webui.utils.access_control import filter_allowed_access_grants, has_permission
+from open_webui.utils.access_control import filter_allowed_access_grants, filter_shareable_group_ids, has_permission
 from open_webui.utils.auth import get_admin_user, get_verified_user
 from open_webui.utils.channels import extract_mentions, replace_mentions
 from open_webui.utils.files import get_image_base64_from_file_id
@@ -316,6 +316,7 @@ async def create_new_channel(
         form_data.access_grants,
         'sharing.public_channels',
     )
+    form_data.group_ids = await filter_shareable_group_ids(user.id, user.role, form_data.group_ids, db=db)
 
     try:
         if form_data.type == 'dm':
@@ -641,6 +642,8 @@ async def add_members_by_id(
     if channel.user_id != user.id and user.role != 'admin':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=ERROR_MESSAGES.DEFAULT())
 
+    form_data.group_ids = await filter_shareable_group_ids(user.id, user.role, form_data.group_ids, db=db)
+
     try:
         memberships = await Channels.add_members_to_channel(
             channel.id, user.id, form_data.user_ids, form_data.group_ids, db=db
@@ -729,6 +732,7 @@ async def update_channel_by_id(
         user.role,
         form_data.access_grants,
         'sharing.public_channels',
+        existing_access_grants=channel.access_grants,
     )
 
     try:

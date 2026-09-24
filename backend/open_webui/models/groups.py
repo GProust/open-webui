@@ -139,11 +139,13 @@ GROUP_SHARE_GROUPS = 'groups'
 
 def can_share_to_group(group: GroupModel, user_group_ids: set[str]) -> bool:
     """Check a group's "Who can share to this group" setting for a user who belongs to `user_group_ids`."""
-    config = (group.data or {}).get('config') or {}
+    config = (group.data or {}).get('config')
+    if not isinstance(config, dict):
+        config = {}
     share = config.get('share')
 
     # Groups without a share setting are open, as in the `get_groups` share filter
-    if share is None or share is True or share == 1:
+    if share is None or share is True or (type(share) is int and share == 1):
         return True
 
     if isinstance(share, str):
@@ -154,7 +156,9 @@ def can_share_to_group(group: GroupModel, user_group_ids: set[str]) -> bool:
             return group.id in user_group_ids
         if share == GROUP_SHARE_GROUPS:
             share_group_ids = config.get('share_group_ids')
-            return isinstance(share_group_ids, list) and bool(set(share_group_ids) & user_group_ids)
+            return isinstance(share_group_ids, list) and any(
+                isinstance(group_id, str) and group_id in user_group_ids for group_id in share_group_ids
+            )
 
     return False
 

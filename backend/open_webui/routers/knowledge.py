@@ -1046,6 +1046,7 @@ async def update_external_knowledge_source(
         user.role,
         form_data.access_grants,
         'sharing.public_knowledge',
+        existing_access_grants=knowledge.access_grants,
     )
 
     connections[idx] = connection
@@ -1182,6 +1183,7 @@ async def update_knowledge_by_id(
         user.role,
         form_data.access_grants,
         'sharing.public_knowledge',
+        existing_access_grants=knowledge.access_grants,
     )
 
     knowledge = await Knowledges.update_knowledge_by_id(id=id, form_data=form_data)
@@ -1258,6 +1260,7 @@ async def update_knowledge_access_by_id(
         user.role,
         form_data.access_grants,
         'sharing.public_knowledge',
+        existing_access_grants=knowledge.access_grants,
     )
 
     knowledge.access_grants = await AccessGrants.set_access_grants('knowledge', id, form_data.access_grants, db=db)
